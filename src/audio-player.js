@@ -244,6 +244,13 @@ class AudioPlayer {
         this.container.querySelector('.audio-player-minimized').style.display = 'none';
         this.isMinimized = false;
         document.body.style.overflow = window.innerWidth <= 768 ? 'hidden' : 'auto';
+        
+        // Auto play if enabled
+        if (this.options.autoplay) {
+            this.audio.play().catch(e => {
+                console.log('Autoplay was prevented by browser policy:', e);
+            });
+        }
     }
     
     minimize() {

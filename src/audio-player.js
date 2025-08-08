@@ -91,6 +91,7 @@ class AudioPlayer {
                                 <div class="timeline-preview" style="display: none;">0:00</div>
                             </div>
                             <span class="timeline-time total-time">0:00</span>
+                            <div class="skip-tooltip"></div>
                         </div>
                         
                         <div class="audio-player-controls">
@@ -303,10 +304,28 @@ class AudioPlayer {
     
     rewind() {
         this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
+        this.showSkipTooltip('10s geri');
     }
     
     forward() {
         this.audio.currentTime = Math.min(this.duration, this.audio.currentTime + 10);
+        this.showSkipTooltip('10s ileri');
+    }
+    
+    showSkipTooltip(message) {
+        const tooltip = this.container.querySelector('.skip-tooltip');
+        tooltip.textContent = message;
+        tooltip.classList.add('show');
+        
+        // Clear any existing timeout
+        if (this.skipTooltipTimeout) {
+            clearTimeout(this.skipTooltipTimeout);
+        }
+        
+        // Hide after 2 seconds
+        this.skipTooltipTimeout = setTimeout(() => {
+            tooltip.classList.remove('show');
+        }, 2000);
     }
     
     setPlaybackRate(rate) {

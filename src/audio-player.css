@@ -153,6 +153,7 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 32px;
+    position: relative;
 }
 
 .timeline-time {
@@ -227,6 +228,31 @@
     transform: translateX(-50%);
     border: 4px solid transparent;
     border-top-color: var(--bg-color);
+}
+
+.skip-tooltip {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-color);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 400;
+    box-shadow: 0 4px 12px var(--shadow);
+    border: 1px solid var(--border-color);
+    pointer-events: none;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    transform: translateX(-50%) translateY(5px);
+}
+
+.skip-tooltip.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 /* Controls */

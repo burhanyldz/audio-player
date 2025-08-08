@@ -92,10 +92,9 @@ class AudioPlayer {
                         
                         <div class="audio-player-controls">
                             <button class="control-btn rewind-btn" title="Rewind 10s">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 12a9 9 0 1 1 0 18 9 9 0 0 1 0-18z"/>
-                                    <path d="M12 7v5l4 2"/>
-                                    <text x="12" y="16" text-anchor="middle" font-size="8" fill="currentColor">-10</text>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                   
+                                    <text x="12" y="16" text-anchor="middle" font-size="14" fill="currentColor">-10</text>
                                 </svg>
                             </button>
                             
@@ -110,10 +109,9 @@ class AudioPlayer {
                             </button>
                             
                             <button class="control-btn forward-btn" title="Forward 10s">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 12a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/>
-                                    <path d="M12 7v5l4 2"/>
-                                    <text x="12" y="16" text-anchor="middle" font-size="8" fill="currentColor">+10</text>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                    
+                                    <text x="12" y="16" text-anchor="middle" font-size="14" fill="currentColor">+10</text>
                                 </svg>
                             </button>
                         </div>

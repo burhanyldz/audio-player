@@ -180,19 +180,6 @@
                 Open Dark Theme Player
             </button>
         </div>
-        
-        <div class="features-list">
-            <div class="features-title">Features</div>
-            <ul>
-                <li>Responsive design (fullscreen on mobile)</li>
-                <li>Minimize to floating toolbar</li>
-                <li>10s forward/backward controls</li>
-                <li>Variable playback speed</li>
-                <li>Keyboard shortcuts support</li>
-                <li>Light and dark themes</li>
-                <li>Reusable JavaScript library</li>
-            </ul>
-        </div>
     </div>
 
     <script src="/src/audio-player.js"></script>
@@ -201,10 +188,10 @@
             const player = new AudioPlayer({
                 theme: 'light',
                 track: {
-                    title: 'Sample Song Title',
-                    album: 'Sample Album Name',
-                    cover: 'https://images.pexels.com/photos/167092/pexels-photo-167092.jpeg?auto=compress&cs=tinysrgb&w=400',
-                    src: 'Nathan Evans - Wellerman (Sea Shanty).mp3'
+                    title: 'Canlıların Ortak Özellikleri',
+                    album: 'Biyoloji',
+                    cover: 'cover.jpg',
+                    src: 'audio.mp3'
                 }
             });
             player.show();
@@ -214,10 +201,10 @@
             const player = new AudioPlayer({
                 theme: 'dark',
                 track: {
-                    title: 'Night Vibes',
-                    album: 'Dark Collection',
+                    title: 'Canlıların Ortak Özellikleri',
+                    album: 'Biyoloji',
                     cover: 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=400',
-                    src: 'Nathan Evans - Wellerman (Sea Shanty).mp3'
+                    src: 'cover.jpg'
                 }
             });
             player.show();

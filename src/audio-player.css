@@ -317,24 +317,94 @@
 }
 
 /* Speed Control */
+/* Speed Controls */
 .audio-player-speed {
-    margin-top: 8px;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
 }
 
-.speed-select {
+.speed-btn {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px var(--shadow);
+    font-size: 14px;
+    font-weight: 700;
+    width: 50px;
+}
+
+.speed-btn:hover {
+    background: var(--control-hover);
+    border-color: var(--accent-color);
+}
+
+.speed-popup {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 8px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    padding: 10px 0px;
+    box-shadow: 0 4px 12px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 200px;
+    width: 50px;
+}
+
+.speed-option {
+    background: none;
+    border: none;
+    padding: 12px 6px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 40px;
+    width: 80%;
+    margin: 6px auto;
+}
+
+.speed-option:hover {
+    background: var(--control-hover);
+}
+
+.speed-option.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+.minimized-speed-btn {
     background: var(--control-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-primary);
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 12px;
     cursor: pointer;
     outline: none;
     transition: all 0.2s ease;
+    font-weight: 500;
 }
 
-.speed-select:hover,
-.speed-select:focus {
+.minimized-speed-btn:hover {
     background: var(--control-hover);
     border-color: var(--accent-color);
 }

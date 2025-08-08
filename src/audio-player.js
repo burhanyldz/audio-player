@@ -123,15 +123,17 @@ class AudioPlayer {
                             </button>
                         </div>
                         
+                        <!-- Speed Controls -->
                         <div class="audio-player-speed">
-                            <select class="speed-select">
-                                <option value="0.5">0.5x</option>
-                                <option value="0.75">0.75x</option>
-                                <option value="1" selected>1x</option>
-                                <option value="1.25">1.25x</option>
-                                <option value="1.5">1.5x</option>
-                                <option value="2">2x</option>
-                            </select>
+                            <button class="speed-btn" title="Playback Speed">1x</button>
+                            <div class="speed-popup" style="display: none;">
+                                <button class="speed-option" data-speed="0.5">0.5x</button>
+                                <button class="speed-option" data-speed="0.75">0.75x</button>
+                                <button class="speed-option active" data-speed="1">1x</button>
+                                <button class="speed-option" data-speed="1.25">1.25x</button>
+                                <button class="speed-option" data-speed="1.5">1.5x</button>
+                                <button class="speed-option" data-speed="2">2x</button>
+                            </div>
                         </div>
                         
                         <div class="audio-player-volume">
@@ -178,14 +180,7 @@ class AudioPlayer {
                         </svg>
                     </button>
                     
-                    <select class="minimized-speed-select">
-                        <option value="0.5">0.5x</option>
-                        <option value="0.75">0.75x</option>
-                        <option value="1" selected>1x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="2">2x</option>
-                    </select>
+                    <button class="minimized-speed-btn" title="Playback Speed">1x</button>
                     
                     <button class="minimized-maximize-btn" title="Büyüt">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -213,7 +208,9 @@ class AudioPlayer {
         const playPauseBtn = this.container.querySelector('.play-pause-btn');
         const rewindBtn = this.container.querySelector('.rewind-btn');
         const forwardBtn = this.container.querySelector('.forward-btn');
-        const speedSelect = this.container.querySelector('.speed-select');
+        const speedBtn = this.container.querySelector('.speed-btn');
+        const speedPopup = this.container.querySelector('.speed-popup');
+        const speedOptions = this.container.querySelectorAll('.speed-option');
         const backdrop = this.container.querySelector('.audio-player-backdrop');
         
         // Volume controls
@@ -230,7 +227,7 @@ class AudioPlayer {
         
         // Minimized controls
         const minimizedPlayBtn = this.container.querySelector('.minimized-play-btn');
-        const minimizedSpeedSelect = this.container.querySelector('.minimized-speed-select');
+        const minimizedSpeedBtn = this.container.querySelector('.minimized-speed-btn');
         const minimizedMaximizeBtn = this.container.querySelector('.minimized-maximize-btn');
         const minimizedCloseBtn = this.container.querySelector('.minimized-close-btn');
         
@@ -239,18 +236,30 @@ class AudioPlayer {
         playPauseBtn.addEventListener('click', () => this.togglePlay());
         rewindBtn.addEventListener('click', () => this.rewind());
         forwardBtn.addEventListener('click', () => this.forward());
-        speedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
+        speedBtn.addEventListener('click', () => this.toggleSpeedPopup());
         backdrop.addEventListener('click', () => this.close());
+        
+        // Speed options
+        speedOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const speed = e.target.dataset.speed;
+                this.setPlaybackRate(speed);
+                this.hideSpeedPopup();
+            });
+        });
         
         // Volume controls
         volumeSpeakerBtn.addEventListener('click', () => this.toggleVolumePopup());
         volumeMuteBtn.addEventListener('click', () => this.toggleMute());
         volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
         
-        // Close volume popup when clicking outside
+        // Close popups when clicking outside
         document.addEventListener('click', (e) => {
             if (!this.container.querySelector('.audio-player-volume').contains(e.target)) {
                 this.hideVolumePopup();
+            }
+            if (!this.container.querySelector('.audio-player-speed').contains(e.target)) {
+                this.hideSpeedPopup();
             }
         });
         
@@ -274,7 +283,7 @@ class AudioPlayer {
         
         // Minimized controls
         minimizedPlayBtn.addEventListener('click', () => this.togglePlay());
-        minimizedSpeedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
+        minimizedSpeedBtn.addEventListener('click', () => this.toggleSpeedPopup());
         minimizedMaximizeBtn.addEventListener('click', () => this.maximize());
         minimizedCloseBtn.addEventListener('click', () => this.close());
         
@@ -384,9 +393,22 @@ class AudioPlayer {
         this.playbackRate = parseFloat(rate);
         this.audio.playbackRate = this.playbackRate;
         
-        // Sync both speed selects
-        this.container.querySelector('.speed-select').value = rate;
-        this.container.querySelector('.minimized-speed-select').value = rate;
+        // Update button text
+        const speedBtn = this.container.querySelector('.speed-btn');
+        const minimizedSpeedBtn = this.container.querySelector('.minimized-speed-btn');
+        const speedText = rate + 'x';
+        
+        if (speedBtn) speedBtn.textContent = speedText;
+        if (minimizedSpeedBtn) minimizedSpeedBtn.textContent = speedText;
+        
+        // Update active state in popup
+        const speedOptions = this.container.querySelectorAll('.speed-option');
+        speedOptions.forEach(option => {
+            option.classList.remove('active');
+            if (option.dataset.speed === rate.toString()) {
+                option.classList.add('active');
+            }
+        });
     }
     
     toggleMute() {
@@ -480,6 +502,27 @@ class AudioPlayer {
     hideVolumePopup() {
         const volumePopup = this.container.querySelector('.volume-popup');
         volumePopup.style.display = 'none';
+    }
+    
+    toggleSpeedPopup() {
+        const speedPopup = this.container.querySelector('.speed-popup');
+        const isVisible = speedPopup.style.display === 'block';
+        
+        if (isVisible) {
+            this.hideSpeedPopup();
+        } else {
+            this.showSpeedPopup();
+        }
+    }
+    
+    showSpeedPopup() {
+        const speedPopup = this.container.querySelector('.speed-popup');
+        speedPopup.style.display = 'block';
+    }
+    
+    hideSpeedPopup() {
+        const speedPopup = this.container.querySelector('.speed-popup');
+        speedPopup.style.display = 'none';
     }
     
     seekToPosition(e) {

@@ -60,12 +60,12 @@ class AudioPlayer {
                 <div class="audio-player-backdrop"></div>
                 <div class="audio-player-content">
                     <div class="audio-player-header">
-                        <button class="audio-player-minimize" title="Minimize">
+                        <button class="audio-player-minimize" title="Küçült">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M6 9l6 6 6-6"/>
                             </svg>
                         </button>
-                        <button class="audio-player-close" title="Close">
+                        <button class="audio-player-close" title="Kapat">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -91,14 +91,14 @@ class AudioPlayer {
                         </div>
                         
                         <div class="audio-player-controls">
-                            <button class="control-btn rewind-btn" title="Rewind 10s">
+                            <button class="control-btn rewind-btn" title="10s geri sar">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                                    
                                     <text x="12" y="16" text-anchor="middle" font-size="14" fill="currentColor">-10</text>
                                 </svg>
                             </button>
                             
-                            <button class="control-btn play-pause-btn main-play-btn">
+                            <button class="control-btn play-pause-btn main-play-btn" title="Oynat/Duraklat">
                                 <svg class="play-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                                     <polygon points="5,3 19,12 5,21"/>
                                 </svg>
@@ -108,7 +108,7 @@ class AudioPlayer {
                                 </svg>
                             </button>
                             
-                            <button class="control-btn forward-btn" title="Forward 10s">
+                            <button class="control-btn forward-btn" title="10s ileri sar">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                                     
                                     <text x="12" y="16" text-anchor="middle" font-size="14" fill="currentColor">+10</text>
@@ -152,7 +152,13 @@ class AudioPlayer {
                         <option value="2">2x</option>
                     </select>
                     
-                    <button class="minimized-close-btn" title="Close">
+                    <button class="minimized-maximize-btn" title="Büyüt">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 15l-6-6-6 6"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="minimized-close-btn" title="Kapat">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -183,6 +189,7 @@ class AudioPlayer {
         // Minimized controls
         const minimizedPlayBtn = this.container.querySelector('.minimized-play-btn');
         const minimizedSpeedSelect = this.container.querySelector('.minimized-speed-select');
+        const minimizedMaximizeBtn = this.container.querySelector('.minimized-maximize-btn');
         const minimizedCloseBtn = this.container.querySelector('.minimized-close-btn');
         
         closeBtn.addEventListener('click', () => this.close());
@@ -199,6 +206,7 @@ class AudioPlayer {
         // Minimized controls
         minimizedPlayBtn.addEventListener('click', () => this.togglePlay());
         minimizedSpeedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
+        minimizedMaximizeBtn.addEventListener('click', () => this.maximize());
         minimizedCloseBtn.addEventListener('click', () => this.close());
         
         // Keyboard shortcuts
@@ -243,6 +251,13 @@ class AudioPlayer {
         this.container.querySelector('.audio-player-minimized').style.display = 'flex';
         this.isMinimized = true;
         document.body.style.overflow = 'auto';
+    }
+    
+    maximize() {
+        this.container.querySelector('.audio-player-modal').style.display = 'flex';
+        this.container.querySelector('.audio-player-minimized').style.display = 'none';
+        this.isMinimized = false;
+        document.body.style.overflow = 'hidden';
     }
     
     close() {

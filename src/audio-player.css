@@ -353,6 +353,24 @@
     color: var(--text-primary);
 }
 
+.minimized-maximize-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.minimized-maximize-btn:hover {
+    background: var(--control-hover);
+    color: var(--text-primary);
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .audio-player-content {

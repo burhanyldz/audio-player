@@ -9,6 +9,8 @@ class AudioPlayer {
         
         this.isMinimized = false;
         this.isPlaying = false;
+        this.isDragging = false;
+        this.dragPosition = 0; // Store drag position percentage
         this.currentTime = 0;
         this.duration = 0;
         this.playbackRate = 1;
@@ -86,6 +88,7 @@ class AudioPlayer {
                             <div class="timeline-bar">
                                 <div class="timeline-progress"></div>
                                 <div class="timeline-handle"></div>
+                                <div class="timeline-preview" style="display: none;">0:00</div>
                             </div>
                             <span class="timeline-time total-time">0:00</span>
                         </div>
@@ -185,6 +188,7 @@ class AudioPlayer {
         const timelineBar = this.container.querySelector('.timeline-bar');
         const timelineProgress = this.container.querySelector('.timeline-progress');
         const timelineHandle = this.container.querySelector('.timeline-handle');
+        const timelinePreview = this.container.querySelector('.timeline-preview');
         
         // Minimized controls
         const minimizedPlayBtn = this.container.querySelector('.minimized-play-btn');
@@ -201,7 +205,13 @@ class AudioPlayer {
         backdrop.addEventListener('click', () => this.close());
         
         // Timeline interaction
-        timelineBar.addEventListener('click', (e) => this.seekToPosition(e));
+        timelineBar.addEventListener('mousedown', (e) => this.startDrag(e));
+        timelineBar.addEventListener('mousemove', (e) => this.showPreview(e));
+        timelineBar.addEventListener('mouseleave', () => this.hidePreview());
+        
+        // Global mouse events for dragging
+        document.addEventListener('mousemove', (e) => this.drag(e));
+        document.addEventListener('mouseup', () => this.endDrag());
         
         // Minimized controls
         minimizedPlayBtn.addEventListener('click', () => this.togglePlay());
@@ -307,15 +317,100 @@ class AudioPlayer {
         this.audio.currentTime = newTime;
     }
     
+    startDrag(e) {
+        this.isDragging = true;
+        const timelineBar = this.container.querySelector('.timeline-bar');
+        timelineBar.classList.add('dragging');
+        
+        // Calculate initial drag position but don't seek yet
+        const rect = timelineBar.getBoundingClientRect();
+        const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        this.dragPosition = clickX / rect.width;
+        
+        e.preventDefault();
+    }
+    
+    drag(e) {
+        if (!this.isDragging) return;
+        
+        const timelineBar = this.container.querySelector('.timeline-bar');
+        const rect = timelineBar.getBoundingClientRect();
+        const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const percentage = clickX / rect.width;
+        const previewTime = percentage * this.duration;
+        
+        // Store drag position
+        this.dragPosition = percentage;
+        
+        // Update visual position to show where user is dragging
+        const handle = this.container.querySelector('.timeline-handle');
+        const preview = this.container.querySelector('.timeline-preview');
+        
+        handle.style.left = `${percentage * 100}%`;
+        
+        // Show preview time
+        preview.style.display = 'block';
+        preview.style.left = `${clickX}px`;
+        preview.textContent = this.formatTime(previewTime);
+        
+        // Keep current time display showing actual playback position (don't update during drag)
+    }
+    
+    endDrag() {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        const timelineBar = this.container.querySelector('.timeline-bar');
+        timelineBar.classList.remove('dragging');
+        
+        // Seek to the final drag position
+        const newTime = this.dragPosition * this.duration;
+        this.audio.currentTime = newTime;
+        this.currentTime = newTime;
+        
+        // Hide preview
+        this.hidePreview();
+        
+        // Force update timeline to show the correct position
+        this.updateTimeline();
+    }
+    
+    showPreview(e) {
+        if (this.isDragging) return;
+        
+        const rect = e.currentTarget.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const percentage = mouseX / rect.width;
+        const previewTime = percentage * this.duration;
+        
+        const preview = this.container.querySelector('.timeline-preview');
+        preview.style.display = 'block';
+        preview.style.left = `${mouseX}px`;
+        preview.textContent = this.formatTime(previewTime);
+    }
+    
+    hidePreview() {
+        if (this.isDragging) return;
+        
+        const preview = this.container.querySelector('.timeline-preview');
+        preview.style.display = 'none';
+    }
+    
     updateTimeline() {
         if (this.duration > 0) {
             const percentage = (this.currentTime / this.duration) * 100;
             const progress = this.container.querySelector('.timeline-progress');
             const handle = this.container.querySelector('.timeline-handle');
             
+            // Always update progress bar (shows actual playback position)
             progress.style.width = `${percentage}%`;
-            handle.style.left = `${percentage}%`;
             
+            // Only update handle position if not dragging
+            if (!this.isDragging) {
+                handle.style.left = `${percentage}%`;
+            }
+            
+            // Always update current time and total time (even during drag)
             this.container.querySelector('.current-time').textContent = this.formatTime(this.currentTime);
             this.container.querySelector('.total-time').textContent = this.formatTime(this.duration);
         }

@@ -435,8 +435,8 @@
     }
     
     .audio-player-controls {
-        gap: 24px;
-        margin-bottom: 32px;
+        gap: 36px;
+        margin-bottom: 20px;
     }
     
     .rewind-btn,

@@ -95,14 +95,14 @@ class AudioPlayer {
                         
                         <div class="audio-player-controls">
                             <button class="control-btn rewind-btn" title="10s geri sar">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                                   
-                                    <text x="12" y="16" text-anchor="middle" font-size="14" fill="currentColor">-10</text>
+                                <svg width="36" height="36" viewBox="0 0 64 64" stroke-width="4" stroke="currentColor" fill="none">
+                                    <path d="M34.46,53.91A21.91,21.91,0,1,0,12.55,31.78"/>
+                                    <polyline points="4.65 22.33 12.52 32.62 22.81 24.75"/>
                                 </svg>
                             </button>
                             
                             <button class="control-btn play-pause-btn main-play-btn" title="Oynat/Duraklat">
-                                <svg class="play-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                <svg class="play-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="transform: translateX(2px);">
                                     <polygon points="5,3 19,12 5,21"/>
                                 </svg>
                                 <svg class="pause-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
@@ -112,9 +112,9 @@ class AudioPlayer {
                             </button>
                             
                             <button class="control-btn forward-btn" title="10s ileri sar">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                                    
-                                    <text x="12" y="16" text-anchor="middle" font-size="14" fill="currentColor">+10</text>
+                                <svg width="36" height="36" viewBox="0 0 64 64" stroke-width="4" stroke="currentColor" fill="none" transform="scale(-1,1)">
+                                    <path d="M34.46,53.91A21.91,21.91,0,1,0,12.55,31.78"/>
+                                    <polyline points="4.65 22.33 12.52 32.62 22.81 24.75"/>
                                 </svg>
                             </button>
                         </div>

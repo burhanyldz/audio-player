@@ -213,6 +213,7 @@
 .timeline-bar:hover .timeline-handle,
 .timeline-bar.dragging .timeline-handle {
     opacity: 1;
+    transform: translate(-50%, -50%) scaleY(0.833); /* Counter-scale to prevent scaling with parent (1/1.2 = 0.833) */
 }
 
 .timeline-preview {

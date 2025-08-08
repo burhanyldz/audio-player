@@ -16,6 +16,7 @@ class AudioPlayer {
         this.playbackRate = 1;
         this.volume = 1;
         this.isMuted = false;
+        this.previousVolume = 1; // Store volume before muting
         
         this.audio = new Audio();
         this.setupAudio();
@@ -135,21 +136,26 @@ class AudioPlayer {
                         
                         <div class="audio-player-volume">
                             <button class="volume-speaker-btn" title="Volume">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="speaker-unmuted-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                                     <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                </svg>
+                                <svg class="speaker-muted-icon" style="display: none;" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                                    <line x1="17" y1="9" x2="23" y2="15"></line>
                                 </svg>
                             </button>
                             <div class="volume-popup" style="display: none;">
                                 <button class="volume-mute-btn" title="Mute/Unmute">
+                                    <svg class="unmuted-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                    </svg>
                                     <svg class="muted-icon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                                         <line x1="23" y1="9" x2="17" y2="15"></line>
                                         <line x1="17" y1="9" x2="23" y2="15"></line>
-                                    </svg>
-                                    <svg class="unmuted-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
                                     </svg>
                                 </button>
                                 <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1" orient="vertical">
@@ -384,7 +390,19 @@ class AudioPlayer {
     }
     
     toggleMute() {
-        this.isMuted = !this.isMuted;
+        if (this.isMuted) {
+            // Unmuting - restore previous volume
+            this.isMuted = false;
+            this.volume = this.previousVolume;
+            this.audio.volume = this.volume;
+        } else {
+            // Muting - store current volume and set to 0
+            this.previousVolume = this.volume;
+            this.isMuted = true;
+            this.volume = 0;
+            this.audio.volume = 0;
+        }
+        
         this.audio.muted = this.isMuted;
         this.updateVolumeUI();
     }
@@ -393,32 +411,54 @@ class AudioPlayer {
         this.volume = parseFloat(value);
         this.audio.volume = this.volume;
         
-        // If user changes volume while muted, unmute
+        // If user changes volume from 0 while muted, unmute
         if (this.isMuted && this.volume > 0) {
             this.isMuted = false;
             this.audio.muted = false;
+            this.previousVolume = this.volume; // Update previous volume
+        }
+        
+        // If user sets volume to 0, consider it muted
+        if (this.volume === 0 && !this.isMuted) {
+            this.isMuted = true;
+            this.audio.muted = true;
         }
         
         this.updateVolumeUI();
     }
     
     updateVolumeUI() {
+        const volumeSpeakerBtn = this.container.querySelector('.volume-speaker-btn');
         const volumeMuteBtn = this.container.querySelector('.volume-mute-btn');
         const volumeSlider = this.container.querySelector('.volume-slider');
+        
+        // Speaker button icons
+        const speakerMutedIcon = volumeSpeakerBtn.querySelector('.speaker-muted-icon');
+        const speakerUnmutedIcon = volumeSpeakerBtn.querySelector('.speaker-unmuted-icon');
+        
+        // Mute button icons
         const mutedIcon = volumeMuteBtn.querySelector('.muted-icon');
         const unmutedIcon = volumeMuteBtn.querySelector('.unmuted-icon');
         
-        // Update button icon
-        if (this.isMuted || this.volume === 0) {
+        // Update both button icons
+        if (this.isMuted) {
+            // Speaker button - show muted icon
+            speakerMutedIcon.style.display = 'block';
+            speakerUnmutedIcon.style.display = 'none';
+            // Mute button - show muted icon (so user knows it's muted and can click to unmute)
             mutedIcon.style.display = 'block';
             unmutedIcon.style.display = 'none';
         } else {
+            // Speaker button - show unmuted icon
+            speakerMutedIcon.style.display = 'none';
+            speakerUnmutedIcon.style.display = 'block';
+            // Mute button - show unmuted icon (so user knows it's unmuted and can click to mute)
             mutedIcon.style.display = 'none';
             unmutedIcon.style.display = 'block';
         }
         
-        // Update slider value
-        volumeSlider.value = this.isMuted ? 0 : this.volume;
+        // Update slider value - always show current volume
+        volumeSlider.value = this.volume;
     }
     
     toggleVolumePopup() {

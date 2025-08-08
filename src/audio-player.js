@@ -1,0 +1,347 @@
+class AudioPlayer {
+    constructor(options = {}) {
+        this.options = {
+            theme: options.theme || 'light',
+            track: options.track || {},
+            autoplay: options.autoplay || false,
+            ...options
+        };
+        
+        this.isMinimized = false;
+        this.isPlaying = false;
+        this.currentTime = 0;
+        this.duration = 0;
+        this.playbackRate = 1;
+        
+        this.audio = new Audio();
+        this.setupAudio();
+        this.createElements();
+        this.bindEvents();
+    }
+    
+    setupAudio() {
+        if (this.options.track.src) {
+            this.audio.src = this.options.track.src;
+        }
+        
+        this.audio.addEventListener('loadedmetadata', () => {
+            this.duration = this.audio.duration;
+            this.updateTimeline();
+        });
+        
+        this.audio.addEventListener('timeupdate', () => {
+            this.currentTime = this.audio.currentTime;
+            this.updateTimeline();
+        });
+        
+        this.audio.addEventListener('ended', () => {
+            this.isPlaying = false;
+            this.updatePlayButton();
+        });
+        
+        this.audio.addEventListener('play', () => {
+            this.isPlaying = true;
+            this.updatePlayButton();
+        });
+        
+        this.audio.addEventListener('pause', () => {
+            this.isPlaying = false;
+            this.updatePlayButton();
+        });
+    }
+    
+    createElements() {
+        // Main container
+        this.container = document.createElement('div');
+        this.container.className = `audio-player-container ${this.options.theme}`;
+        this.container.innerHTML = `
+            <!-- Full Player Modal -->
+            <div class="audio-player-modal">
+                <div class="audio-player-backdrop"></div>
+                <div class="audio-player-content">
+                    <div class="audio-player-header">
+                        <button class="audio-player-minimize" title="Minimize">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <button class="audio-player-close" title="Close">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="audio-player-body">
+                        <div class="audio-player-cover">
+                            <img src="${this.options.track.cover || ''}" alt="Album Cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBWMTMwTTcwIDEwMEgxMzAiIHN0cm9rZT0iIzlmYTZiMiIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPg=='">
+                        </div>
+                        
+                        <h2 class="audio-player-title">${this.options.track.title || 'Unknown Track'}</h2>
+                        <h3 class="audio-player-album">${this.options.track.album || 'Unknown Album'}</h3>
+                        
+                        <div class="audio-player-timeline">
+                            <span class="timeline-time current-time">0:00</span>
+                            <div class="timeline-bar">
+                                <div class="timeline-progress"></div>
+                                <div class="timeline-handle"></div>
+                            </div>
+                            <span class="timeline-time total-time">0:00</span>
+                        </div>
+                        
+                        <div class="audio-player-controls">
+                            <button class="control-btn rewind-btn" title="Rewind 10s">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 12a9 9 0 1 1 0 18 9 9 0 0 1 0-18z"/>
+                                    <path d="M12 7v5l4 2"/>
+                                    <text x="12" y="16" text-anchor="middle" font-size="8" fill="currentColor">-10</text>
+                                </svg>
+                            </button>
+                            
+                            <button class="control-btn play-pause-btn main-play-btn">
+                                <svg class="play-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                                <svg class="pause-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                                    <rect x="6" y="4" width="4" height="16"/>
+                                    <rect x="14" y="4" width="4" height="16"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="control-btn forward-btn" title="Forward 10s">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/>
+                                    <path d="M12 7v5l4 2"/>
+                                    <text x="12" y="16" text-anchor="middle" font-size="8" fill="currentColor">+10</text>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="audio-player-speed">
+                            <select class="speed-select">
+                                <option value="0.5">0.5x</option>
+                                <option value="0.75">0.75x</option>
+                                <option value="1" selected>1x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="2">2x</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Minimized Player -->
+            <div class="audio-player-minimized" style="display: none;">
+                <div class="minimized-controls">
+                    <button class="minimized-play-btn">
+                        <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5,3 19,12 5,21"/>
+                        </svg>
+                        <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                            <rect x="6" y="4" width="4" height="16"/>
+                            <rect x="14" y="4" width="4" height="16"/>
+                        </svg>
+                    </button>
+                    
+                    <select class="minimized-speed-select">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                    
+                    <button class="minimized-close-btn" title="Close">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(this.container);
+    }
+    
+    bindEvents() {
+        // Modal controls
+        const closeBtn = this.container.querySelector('.audio-player-close');
+        const minimizeBtn = this.container.querySelector('.audio-player-minimize');
+        const playPauseBtn = this.container.querySelector('.play-pause-btn');
+        const rewindBtn = this.container.querySelector('.rewind-btn');
+        const forwardBtn = this.container.querySelector('.forward-btn');
+        const speedSelect = this.container.querySelector('.speed-select');
+        const backdrop = this.container.querySelector('.audio-player-backdrop');
+        
+        // Timeline
+        const timelineBar = this.container.querySelector('.timeline-bar');
+        const timelineProgress = this.container.querySelector('.timeline-progress');
+        const timelineHandle = this.container.querySelector('.timeline-handle');
+        
+        // Minimized controls
+        const minimizedPlayBtn = this.container.querySelector('.minimized-play-btn');
+        const minimizedSpeedSelect = this.container.querySelector('.minimized-speed-select');
+        const minimizedCloseBtn = this.container.querySelector('.minimized-close-btn');
+        
+        closeBtn.addEventListener('click', () => this.close());
+        minimizeBtn.addEventListener('click', () => this.minimize());
+        playPauseBtn.addEventListener('click', () => this.togglePlay());
+        rewindBtn.addEventListener('click', () => this.rewind());
+        forwardBtn.addEventListener('click', () => this.forward());
+        speedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
+        backdrop.addEventListener('click', () => this.close());
+        
+        // Timeline interaction
+        timelineBar.addEventListener('click', (e) => this.seekToPosition(e));
+        
+        // Minimized controls
+        minimizedPlayBtn.addEventListener('click', () => this.togglePlay());
+        minimizedSpeedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
+        minimizedCloseBtn.addEventListener('click', () => this.close());
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (this.container.style.display !== 'none') {
+                switch(e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        this.togglePlay();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        this.rewind();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        this.forward();
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        if (this.isMinimized) {
+                            this.close();
+                        } else {
+                            this.minimize();
+                        }
+                        break;
+                }
+            }
+        });
+    }
+    
+    show() {
+        this.container.style.display = 'block';
+        this.container.querySelector('.audio-player-modal').style.display = 'flex';
+        this.container.querySelector('.audio-player-minimized').style.display = 'none';
+        this.isMinimized = false;
+        document.body.style.overflow = window.innerWidth <= 768 ? 'hidden' : 'auto';
+    }
+    
+    minimize() {
+        this.container.querySelector('.audio-player-modal').style.display = 'none';
+        this.container.querySelector('.audio-player-minimized').style.display = 'flex';
+        this.isMinimized = true;
+        document.body.style.overflow = 'auto';
+    }
+    
+    close() {
+        this.audio.pause();
+        this.container.style.display = 'none';
+        this.isMinimized = false;
+        document.body.style.overflow = 'auto';
+    }
+    
+    togglePlay() {
+        if (this.isPlaying) {
+            this.audio.pause();
+        } else {
+            this.audio.play();
+        }
+    }
+    
+    rewind() {
+        this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
+    }
+    
+    forward() {
+        this.audio.currentTime = Math.min(this.duration, this.audio.currentTime + 10);
+    }
+    
+    setPlaybackRate(rate) {
+        this.playbackRate = parseFloat(rate);
+        this.audio.playbackRate = this.playbackRate;
+        
+        // Sync both speed selects
+        this.container.querySelector('.speed-select').value = rate;
+        this.container.querySelector('.minimized-speed-select').value = rate;
+    }
+    
+    seekToPosition(e) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percentage = clickX / rect.width;
+        const newTime = percentage * this.duration;
+        this.audio.currentTime = newTime;
+    }
+    
+    updateTimeline() {
+        if (this.duration > 0) {
+            const percentage = (this.currentTime / this.duration) * 100;
+            const progress = this.container.querySelector('.timeline-progress');
+            const handle = this.container.querySelector('.timeline-handle');
+            
+            progress.style.width = `${percentage}%`;
+            handle.style.left = `${percentage}%`;
+            
+            this.container.querySelector('.current-time').textContent = this.formatTime(this.currentTime);
+            this.container.querySelector('.total-time').textContent = this.formatTime(this.duration);
+        }
+    }
+    
+    updatePlayButton() {
+        const mainPlayIcons = this.container.querySelectorAll('.play-pause-btn svg, .minimized-play-btn svg');
+        
+        mainPlayIcons.forEach(icon => {
+            if (icon.classList.contains('play-icon')) {
+                icon.style.display = this.isPlaying ? 'none' : 'block';
+            } else if (icon.classList.contains('pause-icon')) {
+                icon.style.display = this.isPlaying ? 'block' : 'none';
+            }
+        });
+    }
+    
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Public methods for external control
+    loadTrack(track) {
+        this.options.track = { ...this.options.track, ...track };
+        if (track.src) {
+            this.audio.src = track.src;
+        }
+        if (track.title) {
+            this.container.querySelector('.audio-player-title').textContent = track.title;
+        }
+        if (track.album) {
+            this.container.querySelector('.audio-player-album').textContent = track.album;
+        }
+        if (track.cover) {
+            this.container.querySelector('.audio-player-cover img').src = track.cover;
+        }
+    }
+    
+    destroy() {
+        this.audio.pause();
+        this.container.remove();
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Make AudioPlayer available globally
+window.AudioPlayer = AudioPlayer;

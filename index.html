@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reusable JavaScript Audio Player Component</title>
+    <link rel="stylesheet" href="/src/audio-player.css">
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.3/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .demo-container {
+                background: white;
+                padding: 48px;
+                border-radius: 20px;
+                box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+                text-align: center;
+                max-width: 500px;
+                width: 90%;
+                margin-top: 48px;
+                margin-bottom: 48px;
+        }
+        
+        .demo-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 32px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .demo-title {
+            font-size: 2.5em;
+            margin-bottom: 16px;
+            color: #1a202c;
+            font-weight: 700;
+        }
+        
+        .demo-subtitle {
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .demo-button {
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .demo-button:active {
+            transform: translateY(0);
+        }
+        
+        .demo-button.dark {
+            background: linear-gradient(45deg, #374151, #111827);
+            box-shadow: 0 4px 15px rgba(55, 65, 81, 0.3);
+        }
+        
+        .demo-button.dark:hover {
+            box-shadow: 0 8px 25px rgba(55, 65, 81, 0.4);
+        }
+        
+        .features-list {
+            text-align: left;
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 32px;
+        }
+        
+        .features-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .features-list li {
+            padding: 8px 0;
+            color: #64748b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .features-list li::before {
+            content: "•";
+            color: #3b82f6;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 640px) {
+            .demo-container {
+                padding: 32px 24px;
+                margin: 20px;
+            }
+            
+            .demo-title {
+                font-size: 2em;
+            }
+        }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+        <div class="demo-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3"/>
+                <circle cx="18" cy="16" r="3"/>
+            </svg>
+        </div>
+        
+        <h1 class="demo-title">Audio Player Demo</h1>
+        
+        <p class="demo-subtitle">
+            Click the buttons below to test the audio player in different themes
+        </p>
+        
+        <div class="demo-buttons">
+            <button class="demo-button" onclick="openPlayerLight()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5,3 19,12 5,21"/>
+                </svg>
+                Open Light Theme Player
+            </button>
+            
+            <button class="demo-button dark" onclick="openPlayerDark()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5,3 19,12 5,21"/>
+                </svg>
+                Open Dark Theme Player
+            </button>
+        </div>
+        
+        <div class="features-list">
+            <div class="features-title">Features</div>
+            <ul>
+                <li>Responsive design (fullscreen on mobile)</li>
+                <li>Minimize to floating toolbar</li>
+                <li>10s forward/backward controls</li>
+                <li>Variable playback speed</li>
+                <li>Keyboard shortcuts support</li>
+                <li>Light and dark themes</li>
+                <li>Reusable JavaScript library</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="/src/audio-player.js"></script>
+    <script>
+        function openPlayerLight() {
+            const player = new AudioPlayer({
+                theme: 'light',
+                track: {
+                    title: 'Sample Song Title',
+                    album: 'Sample Album Name',
+                    cover: 'https://images.pexels.com/photos/167092/pexels-photo-167092.jpeg?auto=compress&cs=tinysrgb&w=400',
+                    src: 'Nathan Evans - Wellerman (Sea Shanty).mp3'
+                }
+            });
+            player.show();
+        }
+        
+        function openPlayerDark() {
+            const player = new AudioPlayer({
+                theme: 'dark',
+                track: {
+                    title: 'Night Vibes',
+                    album: 'Dark Collection',
+                    cover: 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=400',
+                    src: 'Nathan Evans - Wellerman (Sea Shanty).mp3'
+                }
+            });
+            player.show();
+        }
+    </script>
+  </body>
+</html>

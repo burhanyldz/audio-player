@@ -137,7 +137,7 @@ class AudioPlayer {
             <div class="audio-player-minimized" style="display: none;">
                 <div class="minimized-controls">
                     <button class="minimized-play-btn">
-                        <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="transform: translateX(1px);">
                             <polygon points="5,3 19,12 5,21"/>
                         </svg>
                         <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
@@ -204,14 +204,23 @@ class AudioPlayer {
         speedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
         backdrop.addEventListener('click', () => this.close());
         
-        // Timeline interaction
+        // Timeline interaction - Mouse events
         timelineBar.addEventListener('mousedown', (e) => this.startDrag(e));
         timelineBar.addEventListener('mousemove', (e) => this.showPreview(e));
         timelineBar.addEventListener('mouseleave', () => this.hidePreview());
         
+        // Timeline interaction - Touch events (with passive option where appropriate)
+        timelineBar.addEventListener('touchstart', (e) => this.startDrag(e), { passive: false });
+        timelineBar.addEventListener('touchmove', (e) => this.showPreview(e), { passive: true });
+        timelineBar.addEventListener('touchend', () => this.hidePreview());
+        
         // Global mouse events for dragging
         document.addEventListener('mousemove', (e) => this.drag(e));
         document.addEventListener('mouseup', () => this.endDrag());
+        
+        // Global touch events for dragging
+        document.addEventListener('touchmove', (e) => this.drag(e), { passive: false });
+        document.addEventListener('touchend', () => this.endDrag());
         
         // Minimized controls
         minimizedPlayBtn.addEventListener('click', () => this.togglePlay());
@@ -317,6 +326,11 @@ class AudioPlayer {
         this.audio.currentTime = newTime;
     }
     
+    // Helper function to get coordinates from mouse or touch events
+    getEventX(e) {
+        return e.touches ? e.touches[0].clientX : e.clientX;
+    }
+    
     startDrag(e) {
         this.isDragging = true;
         const timelineBar = this.container.querySelector('.timeline-bar');
@@ -324,18 +338,26 @@ class AudioPlayer {
         
         // Calculate initial drag position but don't seek yet
         const rect = timelineBar.getBoundingClientRect();
-        const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const clickX = Math.max(0, Math.min(this.getEventX(e) - rect.left, rect.width));
         this.dragPosition = clickX / rect.width;
         
-        e.preventDefault();
+        // Only prevent default if the event is cancelable
+        if (e.cancelable) {
+            e.preventDefault();
+        }
     }
     
     drag(e) {
         if (!this.isDragging) return;
         
+        // Prevent default behavior if possible
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
         const timelineBar = this.container.querySelector('.timeline-bar');
         const rect = timelineBar.getBoundingClientRect();
-        const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const clickX = Math.max(0, Math.min(this.getEventX(e) - rect.left, rect.width));
         const percentage = clickX / rect.width;
         const previewTime = percentage * this.duration;
         
@@ -379,7 +401,7 @@ class AudioPlayer {
         if (this.isDragging) return;
         
         const rect = e.currentTarget.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
+        const mouseX = this.getEventX(e) - rect.left;
         const percentage = mouseX / rect.width;
         const previewTime = percentage * this.duration;
         

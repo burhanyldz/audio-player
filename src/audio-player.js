@@ -14,6 +14,8 @@ class AudioPlayer {
         this.currentTime = 0;
         this.duration = 0;
         this.playbackRate = 1;
+        this.volume = 1;
+        this.isMuted = false;
         
         this.audio = new Audio();
         this.setupAudio();
@@ -130,6 +132,29 @@ class AudioPlayer {
                                 <option value="2">2x</option>
                             </select>
                         </div>
+                        
+                        <div class="audio-player-volume">
+                            <button class="volume-speaker-btn" title="Volume">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                </svg>
+                            </button>
+                            <div class="volume-popup" style="display: none;">
+                                <button class="volume-mute-btn" title="Mute/Unmute">
+                                    <svg class="muted-icon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                                    </svg>
+                                    <svg class="unmuted-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                    </svg>
+                                </button>
+                                <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1" orient="vertical">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -185,6 +210,12 @@ class AudioPlayer {
         const speedSelect = this.container.querySelector('.speed-select');
         const backdrop = this.container.querySelector('.audio-player-backdrop');
         
+        // Volume controls
+        const volumeSpeakerBtn = this.container.querySelector('.volume-speaker-btn');
+        const volumeMuteBtn = this.container.querySelector('.volume-mute-btn');
+        const volumeSlider = this.container.querySelector('.volume-slider');
+        const volumePopup = this.container.querySelector('.volume-popup');
+        
         // Timeline
         const timelineBar = this.container.querySelector('.timeline-bar');
         const timelineProgress = this.container.querySelector('.timeline-progress');
@@ -204,6 +235,18 @@ class AudioPlayer {
         forwardBtn.addEventListener('click', () => this.forward());
         speedSelect.addEventListener('change', (e) => this.setPlaybackRate(e.target.value));
         backdrop.addEventListener('click', () => this.close());
+        
+        // Volume controls
+        volumeSpeakerBtn.addEventListener('click', () => this.toggleVolumePopup());
+        volumeMuteBtn.addEventListener('click', () => this.toggleMute());
+        volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
+        
+        // Close volume popup when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.container.querySelector('.audio-player-volume').contains(e.target)) {
+                this.hideVolumePopup();
+            }
+        });
         
         // Timeline interaction - Mouse events
         timelineBar.addEventListener('mousedown', (e) => this.startDrag(e));
@@ -264,6 +307,9 @@ class AudioPlayer {
         this.container.querySelector('.audio-player-minimized').style.display = 'none';
         this.isMinimized = false;
         document.body.style.overflow = window.innerWidth <= 768 ? 'hidden' : 'auto';
+        
+        // Initialize volume UI
+        this.updateVolumeUI();
         
         // Auto play if enabled
         if (this.options.autoplay) {
@@ -335,6 +381,65 @@ class AudioPlayer {
         // Sync both speed selects
         this.container.querySelector('.speed-select').value = rate;
         this.container.querySelector('.minimized-speed-select').value = rate;
+    }
+    
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        this.audio.muted = this.isMuted;
+        this.updateVolumeUI();
+    }
+    
+    setVolume(value) {
+        this.volume = parseFloat(value);
+        this.audio.volume = this.volume;
+        
+        // If user changes volume while muted, unmute
+        if (this.isMuted && this.volume > 0) {
+            this.isMuted = false;
+            this.audio.muted = false;
+        }
+        
+        this.updateVolumeUI();
+    }
+    
+    updateVolumeUI() {
+        const volumeMuteBtn = this.container.querySelector('.volume-mute-btn');
+        const volumeSlider = this.container.querySelector('.volume-slider');
+        const mutedIcon = volumeMuteBtn.querySelector('.muted-icon');
+        const unmutedIcon = volumeMuteBtn.querySelector('.unmuted-icon');
+        
+        // Update button icon
+        if (this.isMuted || this.volume === 0) {
+            mutedIcon.style.display = 'block';
+            unmutedIcon.style.display = 'none';
+        } else {
+            mutedIcon.style.display = 'none';
+            unmutedIcon.style.display = 'block';
+        }
+        
+        // Update slider value
+        volumeSlider.value = this.isMuted ? 0 : this.volume;
+    }
+    
+    toggleVolumePopup() {
+        const volumePopup = this.container.querySelector('.volume-popup');
+        const isVisible = volumePopup.style.display === 'block';
+        
+        if (isVisible) {
+            this.hideVolumePopup();
+        } else {
+            this.showVolumePopup();
+        }
+    }
+    
+    showVolumePopup() {
+        const volumePopup = this.container.querySelector('.volume-popup');
+        volumePopup.style.display = 'block';
+    }
+    
+    hideVolumePopup() {
+        const volumePopup = this.container.querySelector('.volume-popup');
+        volumePopup.style.display = 'none';
     }
     
     seekToPosition(e) {

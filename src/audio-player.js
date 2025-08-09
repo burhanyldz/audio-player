@@ -182,6 +182,18 @@ class AudioPlayer {
                     
                     <button class="minimized-speed-btn" title="Playback Speed">1x</button>
                     
+                    <button class="minimized-volume-btn" title="Volume">
+                        <svg class="minimized-speaker-unmuted-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <svg class="minimized-speaker-muted-icon" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                        </svg>
+                    </button>
+                    
                     <button class="minimized-maximize-btn" title="Büyüt">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 15l-6-6-6 6"/>
@@ -194,6 +206,32 @@ class AudioPlayer {
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
+                    
+                    <!-- Minimized Speed Popup -->
+                    <div class="minimized-speed-popup" style="display: none;">
+                        <button class="minimized-speed-option" data-speed="0.5">0.5x</button>
+                        <button class="minimized-speed-option" data-speed="0.75">0.75x</button>
+                        <button class="minimized-speed-option active" data-speed="1">1x</button>
+                        <button class="minimized-speed-option" data-speed="1.25">1.25x</button>
+                        <button class="minimized-speed-option" data-speed="1.5">1.5x</button>
+                        <button class="minimized-speed-option" data-speed="2">2x</button>
+                    </div>
+                    
+                    <!-- Minimized Volume Popup -->
+                    <div class="minimized-volume-popup" style="display: none;">
+                        <button class="minimized-volume-mute-btn" title="Mute/Unmute">
+                            <svg class="minimized-muted-icon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <line x1="23" y1="9" x2="17" y2="15"></line>
+                                <line x1="17" y1="9" x2="23" y2="15"></line>
+                            </svg>
+                            <svg class="minimized-unmuted-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                            </svg>
+                        </button>
+                        <input type="range" class="minimized-volume-slider" min="0" max="1" step="0.01" value="1" orient="vertical">
+                    </div>
                 </div>
             </div>
         `;
@@ -228,8 +266,16 @@ class AudioPlayer {
         // Minimized controls
         const minimizedPlayBtn = this.container.querySelector('.minimized-play-btn');
         const minimizedSpeedBtn = this.container.querySelector('.minimized-speed-btn');
+        const minimizedVolumeBtn = this.container.querySelector('.minimized-volume-btn');
         const minimizedMaximizeBtn = this.container.querySelector('.minimized-maximize-btn');
         const minimizedCloseBtn = this.container.querySelector('.minimized-close-btn');
+        
+        // Minimized popups
+        const minimizedSpeedPopup = this.container.querySelector('.minimized-speed-popup');
+        const minimizedSpeedOptions = this.container.querySelectorAll('.minimized-speed-option');
+        const minimizedVolumePopup = this.container.querySelector('.minimized-volume-popup');
+        const minimizedVolumeMuteBtn = this.container.querySelector('.minimized-volume-mute-btn');
+        const minimizedVolumeSlider = this.container.querySelector('.minimized-volume-slider');
         
         closeBtn.addEventListener('click', () => this.close());
         minimizeBtn.addEventListener('click', () => this.minimize());
@@ -283,9 +329,33 @@ class AudioPlayer {
         
         // Minimized controls
         minimizedPlayBtn.addEventListener('click', () => this.togglePlay());
-        minimizedSpeedBtn.addEventListener('click', () => this.toggleSpeedPopup());
+        minimizedSpeedBtn.addEventListener('click', () => this.toggleMinimizedSpeedPopup());
+        minimizedVolumeBtn.addEventListener('click', () => this.toggleMinimizedVolumePopup());
         minimizedMaximizeBtn.addEventListener('click', () => this.maximize());
         minimizedCloseBtn.addEventListener('click', () => this.close());
+        
+        // Minimized speed options
+        minimizedSpeedOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const speed = e.target.dataset.speed;
+                this.setPlaybackRate(speed);
+                this.hideMinimizedSpeedPopup();
+            });
+        });
+        
+        // Minimized volume controls
+        minimizedVolumeMuteBtn.addEventListener('click', () => this.toggleMute());
+        minimizedVolumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
+        
+        // Close minimized popups when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.container.querySelector('.audio-player-minimized').contains(e.target) && 
+                !minimizedSpeedPopup.contains(e.target) && 
+                !minimizedVolumePopup.contains(e.target)) {
+                this.hideMinimizedSpeedPopup();
+                this.hideMinimizedVolumePopup();
+            }
+        });
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -409,6 +479,15 @@ class AudioPlayer {
                 option.classList.add('active');
             }
         });
+        
+        // Update active state in minimized popup
+        const minimizedSpeedOptions = this.container.querySelectorAll('.minimized-speed-option');
+        minimizedSpeedOptions.forEach(option => {
+            option.classList.remove('active');
+            if (option.dataset.speed === rate.toString()) {
+                option.classList.add('active');
+            }
+        });
     }
     
     toggleMute() {
@@ -452,6 +531,7 @@ class AudioPlayer {
     updateVolumeUI() {
         const volumeSpeakerBtn = this.container.querySelector('.volume-speaker-btn');
         const volumeMuteBtn = this.container.querySelector('.volume-mute-btn');
+        const minimizedVolumeBtn = this.container.querySelector('.minimized-volume-btn');
         const volumeSlider = this.container.querySelector('.volume-slider');
         
         // Speaker button icons
@@ -462,7 +542,11 @@ class AudioPlayer {
         const mutedIcon = volumeMuteBtn.querySelector('.muted-icon');
         const unmutedIcon = volumeMuteBtn.querySelector('.unmuted-icon');
         
-        // Update both button icons
+        // Minimized volume button icons
+        const minimizedSpeakerMutedIcon = minimizedVolumeBtn?.querySelector('.minimized-speaker-muted-icon');
+        const minimizedSpeakerUnmutedIcon = minimizedVolumeBtn?.querySelector('.minimized-speaker-unmuted-icon');
+        
+        // Update all button icons
         if (this.isMuted) {
             // Speaker button - show muted icon
             speakerMutedIcon.style.display = 'block';
@@ -470,6 +554,11 @@ class AudioPlayer {
             // Mute button - show muted icon (so user knows it's muted and can click to unmute)
             mutedIcon.style.display = 'block';
             unmutedIcon.style.display = 'none';
+            // Minimized volume button - show muted icon
+            if (minimizedSpeakerMutedIcon && minimizedSpeakerUnmutedIcon) {
+                minimizedSpeakerMutedIcon.style.display = 'block';
+                minimizedSpeakerUnmutedIcon.style.display = 'none';
+            }
         } else {
             // Speaker button - show unmuted icon
             speakerMutedIcon.style.display = 'none';
@@ -477,10 +566,36 @@ class AudioPlayer {
             // Mute button - show unmuted icon (so user knows it's unmuted and can click to mute)
             mutedIcon.style.display = 'none';
             unmutedIcon.style.display = 'block';
+            // Minimized volume button - show unmuted icon
+            if (minimizedSpeakerMutedIcon && minimizedSpeakerUnmutedIcon) {
+                minimizedSpeakerMutedIcon.style.display = 'none';
+                minimizedSpeakerUnmutedIcon.style.display = 'block';
+            }
         }
         
-        // Update slider value - always show current volume
+        // Update slider values - always show current volume
         volumeSlider.value = this.volume;
+        
+        // Update minimized volume popup elements
+        const minimizedVolumeSlider = this.container.querySelector('.minimized-volume-slider');
+        const minimizedVolumeMuteBtn = this.container.querySelector('.minimized-volume-mute-btn');
+        
+        if (minimizedVolumeSlider) {
+            minimizedVolumeSlider.value = this.volume;
+        }
+        
+        if (minimizedVolumeMuteBtn) {
+            const minimizedMutedIcon = minimizedVolumeMuteBtn.querySelector('.minimized-muted-icon');
+            const minimizedUnmutedIcon = minimizedVolumeMuteBtn.querySelector('.minimized-unmuted-icon');
+            
+            if (this.isMuted) {
+                minimizedMutedIcon.style.display = 'block';
+                minimizedUnmutedIcon.style.display = 'none';
+            } else {
+                minimizedMutedIcon.style.display = 'none';
+                minimizedUnmutedIcon.style.display = 'block';
+            }
+        }
     }
     
     toggleVolumePopup() {
@@ -496,12 +611,46 @@ class AudioPlayer {
     
     showVolumePopup() {
         const volumePopup = this.container.querySelector('.volume-popup');
+        const modal = this.container.querySelector('.audio-player-modal');
+        const minimized = this.container.querySelector('.audio-player-minimized');
+        
         volumePopup.style.display = 'block';
+        
+        // Position popup based on whether we're in minimized mode
+        if (this.isMinimized) {
+            // When minimized, show the modal temporarily to access the popup
+            modal.style.display = 'flex';
+            modal.style.visibility = 'hidden';
+            modal.style.pointerEvents = 'none';
+            
+            volumePopup.style.position = 'fixed';
+            volumePopup.style.bottom = '80px';
+            volumePopup.style.right = '20px';
+            volumePopup.style.left = 'auto';
+            volumePopup.style.visibility = 'visible';
+            volumePopup.style.pointerEvents = 'all';
+        } else {
+            modal.style.visibility = 'visible';
+            modal.style.pointerEvents = 'all';
+            volumePopup.style.position = 'absolute';
+            volumePopup.style.bottom = '100%';
+            volumePopup.style.right = '0';
+            volumePopup.style.left = 'auto';
+            volumePopup.style.visibility = 'visible';
+            volumePopup.style.pointerEvents = 'all';
+        }
     }
     
     hideVolumePopup() {
         const volumePopup = this.container.querySelector('.volume-popup');
+        const modal = this.container.querySelector('.audio-player-modal');
+        
         volumePopup.style.display = 'none';
+        
+        // If we're minimized, hide the modal again
+        if (this.isMinimized) {
+            modal.style.display = 'none';
+        }
     }
     
     toggleSpeedPopup() {
@@ -517,7 +666,89 @@ class AudioPlayer {
     
     showSpeedPopup() {
         const speedPopup = this.container.querySelector('.speed-popup');
+        const modal = this.container.querySelector('.audio-player-modal');
+        const minimized = this.container.querySelector('.audio-player-minimized');
+        
         speedPopup.style.display = 'block';
+        
+        // Position popup based on whether we're in minimized mode
+        if (this.isMinimized) {
+            // When minimized, show the modal temporarily to access the popup
+            modal.style.display = 'flex';
+            modal.style.visibility = 'hidden';
+            modal.style.pointerEvents = 'none';
+            
+            speedPopup.style.position = 'fixed';
+            speedPopup.style.bottom = '80px';
+            speedPopup.style.left = '20px';
+            speedPopup.style.right = 'auto';
+            speedPopup.style.visibility = 'visible';
+            speedPopup.style.pointerEvents = 'all';
+        } else {
+            modal.style.visibility = 'visible';
+            modal.style.pointerEvents = 'all';
+            speedPopup.style.position = 'absolute';
+            speedPopup.style.bottom = '100%';
+            speedPopup.style.left = '0';
+            speedPopup.style.right = 'auto';
+            speedPopup.style.visibility = 'visible';
+            speedPopup.style.pointerEvents = 'all';
+        }
+    }
+    
+    hideSpeedPopup() {
+        const speedPopup = this.container.querySelector('.speed-popup');
+        const modal = this.container.querySelector('.audio-player-modal');
+        
+        speedPopup.style.display = 'none';
+        
+        // If we're minimized, hide the modal again
+        if (this.isMinimized) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    // Minimized popup methods
+    toggleMinimizedSpeedPopup() {
+        const speedPopup = this.container.querySelector('.minimized-speed-popup');
+        const isVisible = speedPopup.style.display === 'block';
+        
+        if (isVisible) {
+            this.hideMinimizedSpeedPopup();
+        } else {
+            this.showMinimizedSpeedPopup();
+        }
+    }
+    
+    showMinimizedSpeedPopup() {
+        const speedPopup = this.container.querySelector('.minimized-speed-popup');
+        speedPopup.style.display = 'block';
+    }
+    
+    hideMinimizedSpeedPopup() {
+        const speedPopup = this.container.querySelector('.minimized-speed-popup');
+        speedPopup.style.display = 'none';
+    }
+    
+    toggleMinimizedVolumePopup() {
+        const volumePopup = this.container.querySelector('.minimized-volume-popup');
+        const isVisible = volumePopup.style.display === 'block';
+        
+        if (isVisible) {
+            this.hideMinimizedVolumePopup();
+        } else {
+            this.showMinimizedVolumePopup();
+        }
+    }
+    
+    showMinimizedVolumePopup() {
+        const volumePopup = this.container.querySelector('.minimized-volume-popup');
+        volumePopup.style.display = 'block';
+    }
+    
+    hideMinimizedVolumePopup() {
+        const volumePopup = this.container.querySelector('.minimized-volume-popup');
+        volumePopup.style.display = 'none';
     }
     
     hideSpeedPopup() {

@@ -721,6 +721,9 @@ class AudioPlayer {
     }
     
     showMinimizedSpeedPopup() {
+        // Close volume popup if it's open
+        this.hideMinimizedVolumePopup();
+        
         const speedPopup = this.container.querySelector('.minimized-speed-popup');
         speedPopup.style.display = 'block';
     }
@@ -742,6 +745,9 @@ class AudioPlayer {
     }
     
     showMinimizedVolumePopup() {
+        // Close speed popup if it's open
+        this.hideMinimizedSpeedPopup();
+        
         const volumePopup = this.container.querySelector('.minimized-volume-popup');
         volumePopup.style.display = 'block';
     }

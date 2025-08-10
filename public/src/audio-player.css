@@ -10,6 +10,26 @@
     display: none;
 }
 
+/* When minimized, the container should not cover the whole page */
+.audio-player-container.minimized {
+    /* collapse interactive area; keep only minimized player clickable */
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    overflow: visible; /* allow fixed child to render */
+}
+
+/* Disable modal/backdrop interaction when minimized */
+.audio-player-container.minimized .audio-player-modal,
+.audio-player-container.minimized .audio-player-backdrop {
+    pointer-events: none;
+}
+
+/* Ensure minimized widget remains clickable */
+.audio-player-container.minimized .audio-player-minimized {
+    pointer-events: auto;
+}
+
 /* Theme Variables */
 .audio-player-container.light {
     --bg-color: #ffffff;

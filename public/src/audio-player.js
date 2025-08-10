@@ -391,6 +391,7 @@ class AudioPlayer {
         this.container.querySelector('.audio-player-modal').style.display = 'flex';
         this.container.querySelector('.audio-player-minimized').style.display = 'none';
         this.isMinimized = false;
+        this.container.classList.remove('minimized');
         document.body.style.overflow = window.innerWidth <= 768 ? 'hidden' : 'auto';
         
         // Initialize volume UI
@@ -408,6 +409,7 @@ class AudioPlayer {
         this.container.querySelector('.audio-player-modal').style.display = 'none';
         this.container.querySelector('.audio-player-minimized').style.display = 'flex';
         this.isMinimized = true;
+        this.container.classList.add('minimized');
         document.body.style.overflow = 'auto';
     }
     
@@ -415,6 +417,7 @@ class AudioPlayer {
         this.container.querySelector('.audio-player-modal').style.display = 'flex';
         this.container.querySelector('.audio-player-minimized').style.display = 'none';
         this.isMinimized = false;
+        this.container.classList.remove('minimized');
         document.body.style.overflow = 'hidden';
     }
     
@@ -422,6 +425,7 @@ class AudioPlayer {
         this.audio.pause();
         this.container.style.display = 'none';
         this.isMinimized = false;
+        this.container.classList.remove('minimized');
         document.body.style.overflow = 'auto';
     }
     

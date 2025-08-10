@@ -4,6 +4,7 @@ class AudioPlayer {
             theme: options.theme || 'light',
             track: options.track || {},
             autoplay: options.autoplay || false,
+            allowMulti: options.allowMulti !== undefined ? options.allowMulti : false,
             ...options
         };
         
@@ -22,6 +23,12 @@ class AudioPlayer {
         this.setupAudio();
         this.createElements();
         this.bindEvents();
+
+        // Register this instance globally so we can manage multiple players
+        if (!window.__AudioPlayers) {
+            window.__AudioPlayers = new Set();
+        }
+        window.__AudioPlayers.add(this);
     }
     
     setupAudio() {
@@ -47,6 +54,10 @@ class AudioPlayer {
         this.audio.addEventListener('play', () => {
             this.isPlaying = true;
             this.updatePlayButton();
+            // Ensure only one player is active at a time when allowMulti is false
+            if (this.options.allowMulti === false) {
+                this.closeOthers();
+            }
         });
         
         this.audio.addEventListener('pause', () => {
@@ -387,6 +398,10 @@ class AudioPlayer {
     }
     
     show() {
+        // Close other players before showing this one when allowMulti is false
+        if (this.options.allowMulti === false) {
+            this.closeOthers();
+        }
         this.container.style.display = 'block';
         this.container.querySelector('.audio-player-modal').style.display = 'flex';
         this.container.querySelector('.audio-player-minimized').style.display = 'none';
@@ -925,8 +940,21 @@ class AudioPlayer {
         this.audio.pause();
         this.container.remove();
         document.body.style.overflow = 'auto';
+        if (window.__AudioPlayers) {
+            window.__AudioPlayers.delete(this);
+        }
     }
 }
+
+// Ensure only one player is displayed/active at a time
+AudioPlayer.prototype.closeOthers = function() {
+    if (!window.__AudioPlayers) return;
+    window.__AudioPlayers.forEach(p => {
+        if (p !== this) {
+            p.close();
+        }
+    });
+};
 
 // Make AudioPlayer available globally
 window.AudioPlayer = AudioPlayer;

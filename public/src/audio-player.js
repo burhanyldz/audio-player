@@ -92,10 +92,18 @@ class AudioPlayer {
                     <div class="audio-player-body">
                         <div class="audio-player-cover">
                             <img src="${this.options.track.cover || ''}" alt="Album Cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBWMTMwTTcwIDEwMEgxMzAiIHN0cm9rZT0iIzlmYTZiMiIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPg=='">
+                            <div class="audio-player-cover-overlay">
+                                <div class="cover-headphones-icon">
+                                    <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                                    </svg>
+                                </div>
+                                <div class="cover-album-text">${this.options.track.album || 'Unknown Album'}</div>
+                            </div>
                         </div>
                         
                         <h2 class="audio-player-title">${this.options.track.title || 'Unknown Track'}</h2>
-                        <h3 class="audio-player-album">${this.options.track.album || 'Unknown Album'}</h3>
                         
                         <div class="audio-player-timeline">
                             <span class="timeline-time current-time">0:00</span>
@@ -930,6 +938,11 @@ class AudioPlayer {
         }
         if (track.album) {
             this.container.querySelector('.audio-player-album').textContent = track.album;
+            // Update the overlay album text as well
+            const overlayText = this.container.querySelector('.cover-album-text');
+            if (overlayText) {
+                overlayText.textContent = track.album;
+            }
         }
         if (track.cover) {
             this.container.querySelector('.audio-player-cover img').src = track.cover;

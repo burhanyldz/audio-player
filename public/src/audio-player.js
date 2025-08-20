@@ -30,6 +30,11 @@ class AudioPlayer {
         this.createElements();
         this.bindEvents();
 
+        // If saveSettings is enabled, apply saved settings (volume/playbackRate)
+        if (this.options.saveSettings) {
+            this._applySavedSettings();
+        }
+
         // Register this instance globally so we can manage multiple players
         if (!window.__AudioPlayers) {
             window.__AudioPlayers = new Set();
@@ -587,6 +592,11 @@ class AudioPlayer {
                 option.classList.add('active');
             }
         });
+
+        // Persist settings if enabled
+        if (this.options.saveSettings) {
+            this._saveSettingsToStorage();
+        }
     }
     
     toggleMute() {
@@ -625,6 +635,50 @@ class AudioPlayer {
         }
         
         this.updateVolumeUI();
+
+        if (this.options.saveSettings) {
+            this._saveSettingsToStorage();
+        }
+    }
+
+    // Settings persistence helpers
+    _storageKey() {
+        return 'audioPlayer.settings';
+    }
+
+    _saveSettingsToStorage() {
+        try {
+            const payload = {
+                playbackRate: this.playbackRate,
+                volume: this.volume
+            };
+            localStorage.setItem(this._storageKey(), JSON.stringify(payload));
+        } catch (e) {
+            console.warn('Failed to save audio player settings', e);
+        }
+    }
+
+    _loadSettingsFromStorage() {
+        try {
+            const raw = localStorage.getItem(this._storageKey());
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    _applySavedSettings() {
+        const s = this._loadSettingsFromStorage();
+        if (!s) return;
+        if (s.playbackRate !== undefined && s.playbackRate !== null) {
+            // Use setPlaybackRate to update UI and audio
+            this.setPlaybackRate(s.playbackRate);
+        }
+        if (s.volume !== undefined && s.volume !== null) {
+            this.setVolume(s.volume);
+        }
     }
     
     updateVolumeUI() {

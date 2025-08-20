@@ -20,6 +20,12 @@ class AudioPlayer {
         this.previousVolume = 1; // Store volume before muting
         
         this.audio = new Audio();
+    // Simple in-instance event emitter: eventName -> Set of handlers
+    this._events = {};
+
+    // Played seconds counter (counts actual seconds audio was playing)
+    this.playedSeconds = 0;
+    this._playedInterval = null; // interval id while playing
         this.setupAudio();
         this.createElements();
         this.bindEvents();
@@ -30,6 +36,41 @@ class AudioPlayer {
         }
         window.__AudioPlayers.add(this);
     }
+
+    // Event emitter API
+    on(eventName, handler) {
+        if (!this._events[eventName]) this._events[eventName] = new Set();
+        this._events[eventName].add(handler);
+    }
+
+    off(eventName, handler) {
+        if (!this._events[eventName]) return;
+        if (!handler) {
+            delete this._events[eventName];
+            return;
+        }
+        this._events[eventName].delete(handler);
+    }
+
+    emit(eventName, detail = {}) {
+        // Call JS handlers
+        const handlers = this._events[eventName];
+        if (handlers) {
+            for (const h of handlers) {
+                try { h(detail); } catch (e) { console.error(e); }
+            }
+        }
+
+        // Dispatch DOM CustomEvent from container for DOM listeners
+        if (this.container) {
+            try {
+                const ev = new CustomEvent(eventName, { detail });
+                this.container.dispatchEvent(ev);
+            } catch (e) {
+                // ignore
+            }
+        }
+    }
     
     setupAudio() {
         if (this.options.track.src) {
@@ -39,16 +80,20 @@ class AudioPlayer {
         this.audio.addEventListener('loadedmetadata', () => {
             this.duration = this.audio.duration;
             this.updateTimeline();
+            this.emit('loadedmetadata', { duration: this.duration, track: this.options.track });
         });
         
         this.audio.addEventListener('timeupdate', () => {
             this.currentTime = this.audio.currentTime;
             this.updateTimeline();
+            this.emit('timeupdate', { currentTime: this.currentTime, duration: this.duration, track: this.options.track });
         });
         
         this.audio.addEventListener('ended', () => {
             this.isPlaying = false;
             this.updatePlayButton();
+            this._stopPlayedInterval();
+            this.emit('ended', { playedSeconds: this.playedSeconds, track: this.options.track });
         });
         
         this.audio.addEventListener('play', () => {
@@ -58,11 +103,15 @@ class AudioPlayer {
             if (this.options.allowMulti === false) {
                 this.closeOthers();
             }
+            this._startPlayedInterval();
+            this.emit('play', { track: this.options.track });
         });
         
         this.audio.addEventListener('pause', () => {
             this.isPlaying = false;
             this.updatePlayButton();
+            this._stopPlayedInterval();
+            this.emit('pause', { playedSeconds: this.playedSeconds, track: this.options.track });
         });
     }
     
@@ -410,6 +459,9 @@ class AudioPlayer {
         if (this.options.allowMulti === false) {
             this.closeOthers();
         }
+    // Ensure this instance is registered (re-open after close)
+    if (!window.__AudioPlayers) window.__AudioPlayers = new Set();
+    window.__AudioPlayers.add(this);
         this.container.style.display = 'block';
         this.container.querySelector('.audio-player-modal').style.display = 'flex';
         this.container.querySelector('.audio-player-minimized').style.display = 'none';
@@ -426,6 +478,9 @@ class AudioPlayer {
                 console.log('Autoplay was prevented by browser policy:', e);
             });
         }
+
+    // Emit show event
+    this.emit('show', { track: this.options.track, playedSeconds: this.playedSeconds });
     }
     
     minimize() {
@@ -434,6 +489,8 @@ class AudioPlayer {
         this.isMinimized = true;
         this.container.classList.add('minimized');
         document.body.style.overflow = 'auto';
+
+    this.emit('minimize', { track: this.options.track, playedSeconds: this.playedSeconds });
     }
     
     maximize() {
@@ -442,14 +499,29 @@ class AudioPlayer {
         this.isMinimized = false;
         this.container.classList.remove('minimized');
         document.body.style.overflow = 'hidden';
+
+    this.emit('maximize', { track: this.options.track, playedSeconds: this.playedSeconds });
     }
     
     close() {
+        // Avoid duplicate close
+        if (this._closed) return;
+        this._closed = true;
+
         this.audio.pause();
         this.container.style.display = 'none';
         this.isMinimized = false;
         this.container.classList.remove('minimized');
         document.body.style.overflow = 'auto';
+
+        // Stop interval and emit close with playedSeconds
+        this._stopPlayedInterval();
+        this.emit('close', { playedSeconds: this.playedSeconds, track: this.options.track });
+
+        // Remove from global registry so future closeOthers won't target this instance
+        if (window.__AudioPlayers) {
+            window.__AudioPlayers.delete(this);
+        }
     }
     
     togglePlay() {
@@ -947,14 +1019,41 @@ class AudioPlayer {
         if (track.cover) {
             this.container.querySelector('.audio-player-cover img').src = track.cover;
         }
+
+    // Reset played seconds for new track
+    this.playedSeconds = 0;
     }
     
     destroy() {
+        this._closed = true;
         this.audio.pause();
+        this._stopPlayedInterval();
         this.container.remove();
         document.body.style.overflow = 'auto';
         if (window.__AudioPlayers) {
             window.__AudioPlayers.delete(this);
+        }
+    }
+
+    // Internal: start/stop interval to count played seconds
+    _startPlayedInterval() {
+        if (this._playedInterval) return;
+        // Tick every 1 second while playing; increment by current playbackRate
+        this._playedInterval = setInterval(() => {
+            // Only increment when audio is actually playing (not paused)
+            if (!this.audio.paused && !this.audio.ended) {
+                const rate = this.audio.playbackRate || 1;
+                // Increase playedSeconds by playback rate so that e.g. 2x doubles counted seconds
+                this.playedSeconds += rate;
+                this.emit('playedsecond', { playedSeconds: this.playedSeconds, track: this.options.track, rate });
+            }
+        }, 1000);
+    }
+
+    _stopPlayedInterval() {
+        if (this._playedInterval) {
+            clearInterval(this._playedInterval);
+            this._playedInterval = null;
         }
     }
 }

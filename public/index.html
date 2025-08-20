@@ -217,6 +217,23 @@
                     src: 'audio.mp3'
                 }
             });
+            // Demo: listen to all player events and log them
+            player.on('loadedmetadata', (d) => console.log('loadedmetadata', d));
+            //player.on('timeupdate', (d) => console.log('timeupdate', d));
+            player.on('play', (d) => console.log('play', d));
+            player.on('pause', (d) => console.log('pause', d));
+            player.on('ended', (d) => console.log('ended', d));
+            player.on('show', (d) => console.log('show', d));
+            player.on('minimize', (d) => console.log('minimize', d));
+            player.on('maximize', (d) => console.log('maximize', d));
+            //player.on('playedsecond', (d) => console.log('playedsecond', d));
+            //player.on('close', (d) => console.log('close', d));
+
+            // Log played seconds when the player is closed
+            player.on('close', ({ playedSeconds }) => {
+                console.log('Player closed. Played seconds:', playedSeconds);
+            });
+
             player.show();
         }
         
@@ -232,6 +249,25 @@
                     src: 'audio.mp3'
                 }
             });
+            // Demo: listen to all player events and log them
+            player.on('loadedmetadata', (d) => console.log('loadedmetadata', d));
+            //player.on('timeupdate', (d) => console.log('timeupdate', d));
+            player.on('play', (d) => console.log('play', d));
+            player.on('pause', (d) => console.log('pause', d));
+            player.on('ended', (d) => console.log('ended', d));
+            player.on('show', (d) => console.log('show', d));
+            player.on('minimize', (d) => console.log('minimize', d));
+            player.on('maximize', (d) => console.log('maximize', d));
+            //player.on('playedsecond', (d) => console.log('playedsecond', d));
+            //player.on('close', (d) => console.log('close', d));
+
+
+
+            // Log played seconds when the player is closed
+            player.on('close', ({ playedSeconds }) => {
+                console.log('Player closed. Played seconds:', playedSeconds);
+            });
+
             player.show();
         }
     </script>
